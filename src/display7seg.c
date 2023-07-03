@@ -73,7 +73,7 @@ void writeDisplayDig(Display * display, uint8_t digito, uint8_t numero) {
 
 void setPuntoDigito(Display * display, uint8_t digito, bool estado){
     if (estado)   {
-        display->segmentos_digito[digito] |= 0b10000001;
+        display->segmentos_digito[digito] |= 0b10000000;
     }else{
         display->segmentos_digito[digito] &= 0b01111111;
     }

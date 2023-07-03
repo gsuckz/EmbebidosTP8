@@ -104,7 +104,7 @@ void modificar(ESTADOS estado, uint8_t hhmm[6], bool inc){
 }
 
 void parpadeoHHMM(Reloj * reloj, uint8_t * hhmm,bool parpadeo){
-    relojHorario(reloj,hhmm);
+
     if (parpadeo) {
         hhmm[2] = -1;
         hhmm[3] = -1;
@@ -121,8 +121,15 @@ int main(void) {
     static uint8_t hhmm[6] = {0,0,0,1,0,0};
     relojGuardarHora(reloj,hhmm);
     while (1){ ///LAZO PRINCIPAL  
-        parpadeoHHMM(reloj,hhmm,Parpadeo);    
-        PonchoWriteDisplay(poncho, hhmm);
+        
+        if (estado == E_HORA) {
+            relojHorario(reloj,hhmm);
+        }
+        relojHorario(reloj,hhmm);
+        if(estado == E_MOD_ALARMA || estado == E_MOD_HORA) {
+            parpadeoHHMM(reloj,hhmm,Parpadeo); 
+        }   
+        PonchoWriteDisplay(poncho, hhmm);        
         PonchoPuntoMode(poncho,2,Parpadeo);
         PonchoDrawDisplay(poncho);
         }
@@ -130,7 +137,9 @@ int main(void) {
 
 
 void SysTick_Handler(void){
-    if (relojTick(reloj)) Parpadeo = !Parpadeo;
+    if (relojTick(reloj)) {
+        Parpadeo = !Parpadeo;
+    }
     if(TimeOut>0) TimeOut--;
 
 }
