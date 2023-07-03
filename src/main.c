@@ -45,7 +45,8 @@
 #include "reloj.h"
 #include <stdbool.h>
 
-#define CANTIDADTICKS 10000
+
+#define CANTIDADTICKS 100
 
 /* === Macros definitions ====================================================================== */
 
@@ -69,16 +70,16 @@ typedef enum Eventos{
 /* === Private variable declarations =========================================================== */
 
 /* === Private function declarations =========================================================== */
-static int hhmmToInt(uint8_t * numero){
-    int resultado =0;
-    resultado += numero[3];
-    resultado += 10*numero[2];
-    resultado += 100*numero[1];
-    resultado += 1000*numero[0];
-    return resultado;
-}
+//static int hhmmToInt(uint8_t * numero){
+//    int resultado =0;
+//    resultado += numero[3];
+//    resultado += 10*numero[2];
+//    resultado += 100*numero[1];
+//    resultado += 1000*numero[0];
+//    return resultado;
+//}
 /* === Public variable definitions ============================================================= */
-
+bool volatile Parpadeo = 0;
 /* === Private variable definitions ============================================================ */
 
 /* === Private function implementation ========================================================= */
@@ -98,87 +99,36 @@ Reloj *  reloj;
 
 
 void modificar(ESTADOS estado, uint8_t hhmm[6], bool inc){
-
+    if ((estado == E_MOD_ALARMA) || (estado == E_MOD_HORA) ) inc ? hhmm[3]++ : hhmm[3]-- ;
+    return;
 }
 
 
 
 int main(void) {
     Poncho_p poncho;
-    SystemCoreClockUpdate();
-    SysTick_Config(SystemCoreClock / CANTIDADTICKS);
     poncho = PonchoInit();
+    SystemCoreClockUpdate();
+    SysTick_Config(SystemCoreClock / (2000 * CANTIDADTICKS));
     reloj = relojCrear(CANTIDADTICKS, alar);
     ESTADOS estado = E_HORA;
-    static uint8_t hhmm[6] = {0,0,0,0,0,0};
+    static uint8_t hhmm[6] = {0,0,0,1,0,0};
     relojGuardarHora(reloj,hhmm);
-    while (1){ ///LAZO PRINCIPAL 
-    //Decide que mostrar en pantalla   
-
-        switch (estado)
-        {
-        case E_HORA:        
-            relojHorario(reloj,hhmm);
-            TimeOut = 3000;
-            while(isHighF(poncho,2)){
-                if (!TimeOut) {
-                    estado = E_MOD_HORA;
-                    TimeOut = 30000;
-                    break;
-                }                    
-            }
-            while(isHighF(poncho,3)){
-            TimeOut = 3000;
-                if (!TimeOut) {
-                    estado = E_MOD_ALARMA;
-                    getAlarmaHora(reloj,hhmm);
-                    TimeOut = 30000;
-                    break;
-                }
-            }
-        break;case E_MOD_ALARMA:   
-            if(!TimeOut) estado = E_HORA;
-            if(PonchoBotonFuncion(poncho,3)){
-                modificar(estado,hhmm,0);
-                TimeOut = 30000;    
-                }
-            if(PonchoBotonFuncion(poncho,4)){
-                modificar(estado,hhmm,1);
-                TimeOut = 30000;
-                }
-            if(PonchoBotonAceptar(poncho)){
-                setAlarmaHora(reloj,hhmm);
-                estado = E_HORA;
-            }
-
-        break;case E_MOD_HORA:
-            if(!TimeOut) estado = E_HORA;
-            if(PonchoBotonFuncion(poncho,3)){
-                modificar(estado,hhmm,0);
-                TimeOut = 30000;
-                }
-            if(PonchoBotonFuncion(poncho,4)){
-                modificar(estado,hhmm,1);                    
-                TimeOut = 30000;
-                }
-            if(PonchoBotonAceptar(poncho)){
-                relojGuardarHora(reloj,hhmm);
-                estado = E_HORA;
-            }
-        break;default:
-
-        break;
-        }
-
-        PonchoWriteDisplay(poncho, hhmmToInt(hhmm));
+    while (1){ ///LAZO PRINCIPAL  
+        relojHorario(reloj,hhmm);  
+        //uint8_t hhmm2[6] = {1,2,3,4,0,0};    
+        PonchoWriteDisplay(poncho, hhmm);
+        PonchoPuntoMode(poncho,2,Parpadeo);
         PonchoDrawDisplay(poncho);
         }
     }
 
 
 void SysTick_Handler(void){
-    relojTick(reloj);
+    if (relojTick(reloj)) Parpadeo = !Parpadeo;
+
     if(TimeOut>0) TimeOut--;
+
 }
 /* === End of documentation ==================================================================== */
 

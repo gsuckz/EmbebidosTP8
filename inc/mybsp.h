@@ -25,7 +25,7 @@ bool PonchoBotonFuncion(Poncho_p poncho, uint8_t i);
  * @param poncho El poncho
  * @param numero
  */
-void PonchoWriteDisplay(Poncho_p poncho, unsigned numero);
+void PonchoWriteDisplay(Poncho_p poncho, uint8_t  numero[]);
 /**
  * @brief Refresca el dispaly del poncho
  *
@@ -41,5 +41,7 @@ void PonchoDrawDisplay(Poncho_p poncho);
 void PonchoBuzzer(Poncho_p poncho,bool estado);
 
 bool isHighF(Poncho_p poncho, uint8_t funcion);
+
+void PonchoPuntoMode(Poncho_p poncho,uint8_t i, bool estado);
 
 #endif

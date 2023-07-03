@@ -88,7 +88,7 @@ pinGPIO const tablaConfigPinGpio[MUX_NUM_PUERTOS][MUX_NUM_PINES] = {
            [5] = {.numRegistroGPIO = 5, .bitRegistroGPIO = 5, .funcion = 4},
            [6] = {.numRegistroGPIO = 5, .bitRegistroGPIO = 6, .funcion = 4},
            [7] = {.numRegistroGPIO = 5, .bitRegistroGPIO = 15, .funcion = 4},
-           [8] = {.numRegistroGPIO = 5, .bitRegistroGPIO = 7, .funcion = 4},
+           [8] = {.numRegistroGPIO = 5, .bitRegistroGPIO = 16, .funcion = 4},
            [9] = {.numRegistroGPIO = 1, .bitRegistroGPIO = 10, .funcion = 0},
            [10] = {.numRegistroGPIO = 0, .bitRegistroGPIO = 14, .funcion = 0},
            [11] = {.numRegistroGPIO = 1, .bitRegistroGPIO = 11, .funcion = 0},

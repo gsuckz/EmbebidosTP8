@@ -72,8 +72,9 @@ bool relojHorario(Reloj * reloj, uint8_t hora[6]);
  * configurado de veces
  * 
  * @param reloj 
+ * @return retorna Verdadero si incrementò un segundo
  */
-void relojTick(Reloj * reloj);
+bool relojTick(Reloj * reloj);
 /**
  * @brief Avisa si la alarma esta sonando o no
  * 

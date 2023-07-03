@@ -15,59 +15,68 @@ Display * displayInit(void (*set_segmento)(uint8_t, bool), void (*set_digito)(ui
     return &display;
 }
 
-void writeDisplay(Display * display, int numero) {
+void writeDisplay(Display * display, uint8_t numeros[]) {
     if (!display)
         return;
 
     for (uint8_t i = 0; i <= display->num_digitos; i++)
 
     {
-        writeDisplayDig(display, i, numero % 10);
-        numero = numero / 10;
+        writeDisplayDig(display, i, numeros[display->num_digitos-i]);
     }
 }
 
 void writeDisplayDig(Display * display, uint8_t digito, uint8_t numero) {
     if (!display)
         return;
-    uint8_t caracter;
+    uint8_t caracter = 0;
     switch (numero) { // xGFEDCBA
     case 0:
-        caracter = 0b00111111;
+        caracter   =  0b00111111;
         break;
     case 1:
-        caracter = 0b0000110;
+        caracter   =  0b0000110;
         break;
     case 2:
-        caracter = 0b01011011;
+        caracter   =  0b01011011;
         break;
     case 3:
-        caracter = 0b01001111;
+        caracter   =  0b01001111;
         break;
     case 4:
-        caracter = 0b01100110;
+        caracter   =  0b01100110;
         break;
     case 5:
-        caracter = 0b01101101;
+        caracter   =  0b01101101;
         break;
     case 6:
-        caracter = 0b11111101;
+        caracter   =  0b01111101;
         break;
     case 7:
-        caracter = 0b0000111;
+        caracter   =  0b0000111;
         break;
     case 8:
-        caracter = 0b11111111;
+        caracter   =  0b01111111;
         break;
     case 9:
-        caracter = 0b11100111;
+        caracter   =  0b01100111;
         break;
     default:
-        caracter = 0;
+        caracter  =  0;
         break;
     }
-    display->segmentos_digito[digito] = caracter;
+
+    display->segmentos_digito[digito]  &=  0b10000000;
+    display->segmentos_digito[digito]  |=  caracter;
     return;
+}
+
+void setPuntoDigito(Display * display, uint8_t digito, bool estado){
+    if (estado)   {
+        display->segmentos_digito[digito] |= 0b10000001;
+    }else{
+        display->segmentos_digito[digito] &= 0b01111111;
+    }
 }
 
 void drawDisplay(Display * display) {
@@ -78,7 +87,7 @@ void drawDisplay(Display * display) {
     digito_activo++;
     if (digito_activo > display->num_digitos)
         digito_activo = 0;
-    for (uint8_t segmento_index = 0; segmento_index <= 6; segmento_index++) {
+    for (uint8_t segmento_index = 0; segmento_index <= 7; segmento_index++) {
         display->set_segmento(segmento_index, (display->segmentos_digito[digito_activo] & (1U << (segmento_index))));
     }
     display->set_digito(digito_activo, 1);

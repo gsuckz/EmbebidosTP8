@@ -146,13 +146,19 @@ static void relojTickSegundo(Reloj * reloj){
     }
 }
 
-void relojTick(Reloj * const reloj){
+
+
+
+bool relojTick(Reloj * const reloj){
+    bool incrementaSegundo = 0;
     if (reloj->ticksMAX <= reloj->ticks ){
         reloj->ticks = 0;
         relojTickSegundo(reloj);
+        incrementaSegundo = 1;
     }else{
         reloj->ticks++;
     }
+    return incrementaSegundo;
 }
 
 EstadoAlarma getEstadoAlarma(Reloj * reloj){

@@ -22,7 +22,7 @@ typedef struct Display {
 
 
 
-void writeDisplay(Display * display, int numero);
+void writeDisplay(Display * display, uint8_t numeros[]);
 /**
  * @brief Escribe en la memoria de video del controlador del Display
  * 
@@ -47,4 +47,7 @@ void drawDisplay (Display * display);
  * @return Display* 
  */
 Display * displayInit (void (*set_segmento)(uint8_t,bool),void (*set_digito)(uint8_t,bool),uint8_t set_num_digitos );
+
+
+void setPuntoDigito(Display * display, uint8_t digito, bool estado);
 #endif

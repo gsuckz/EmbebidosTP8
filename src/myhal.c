@@ -38,7 +38,6 @@ void writePin(Pin const * pin_p, bool valor) {
     Chip_GPIO_SetPinState(LPC_GPIO_PORT, pin->numRegistroGPIO, pin->bitRegistroGPIO, valor);
     return;
 }
-
 void tooglePin(Pin const * pin_p) {
     if (!pin_p)
         return;

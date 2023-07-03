@@ -7,7 +7,7 @@ static void ctrl_segmento(uint8_t seg, bool estado);
 typedef struct Poncho {
     Display * display;
     Pin disp_digito[4];
-    Pin disp_segmentos[7];
+    Pin disp_segmentos[8];
     Pin ACEPTAR;
     Pin CANCELAR;
     Pin F[4];
@@ -28,6 +28,8 @@ static Poncho poncho = {.disp_digito = {[0] = {.puerto = DIGIT_1_PORT, .pin = DI
                                 [4] = {.puerto = SEGMENT_E_PORT, .pin = SEGMENT_E_PIN},
                                 [5] = {.puerto = SEGMENT_F_PORT, .pin = SEGMENT_F_PIN},
                                 [6] = {.puerto = SEGMENT_G_PORT, .pin = SEGMENT_G_PIN},
+                                [7] = {.puerto = SEGMENT_P_PORT, .pin = SEGMENT_P_PIN},
+                                
                             },
 
                         .ACEPTAR = {.puerto = KEY_ACCEPT_PORT, .pin = KEY_ACCEPT_PIN},
@@ -39,8 +41,13 @@ static Poncho poncho = {.disp_digito = {[0] = {.puerto = DIGIT_1_PORT, .pin = DI
                               [2] = {.puerto = KEY_F3_PORT, .pin = KEY_F3_PIN},
                               [3] = {.puerto = KEY_F4_PORT, .pin = KEY_F4_PIN}}
 
-};
 
+
+};
+static void ctrl_segmento(uint8_t seg, bool estado);
+static void ctrl_digito(uint8_t dig, bool estado) {
+    writePin(&(poncho.disp_digito[dig]), estado);
+}
 Poncho * PonchoInit(void) {
     configPin(&poncho.CANCELAR, ENTRADA);
     configPin(&poncho.ACEPTAR, ENTRADA);
@@ -51,8 +58,10 @@ Poncho * PonchoInit(void) {
     for (uint8_t i = 0; i <= 3; i++) {
         configPin(&poncho.disp_digito[i], SALIDA);
     }
-    for (uint8_t i = 0; i <= 6; i++) {
+        ctrl_digito(1,1);
+    for (uint8_t i = 0; i <= 7; i++) {
         configPin(&poncho.disp_segmentos[i], SALIDA);
+        writePin(&poncho.disp_segmentos[i], 1);
     }
     poncho.display = displayInit(ctrl_segmento, ctrl_digito, NUM_DISPLAY);
     return &poncho;
@@ -60,14 +69,12 @@ Poncho * PonchoInit(void) {
 static void ctrl_segmento(uint8_t seg, bool estado) {
     writePin(&(poncho.disp_segmentos[seg]), estado);
 }
-static void ctrl_digito(uint8_t dig, bool estado) {
-    writePin(&(poncho.disp_digito[dig]), estado);
-}
 
-void PonchoWriteDisplay(Poncho * poncho, unsigned numero) {
+
+void PonchoWriteDisplay(Poncho * poncho, uint8_t hhmm[] ) {
     if (!poncho)
         return  ;
-    writeDisplay(poncho->display, numero);
+    writeDisplay(poncho->display, hhmm);
 }
 
 bool PonchoBotonCancelar(Poncho * poncho) {
@@ -124,6 +131,13 @@ void PonchoBuzzer(Poncho * poncho, bool estado) {
         return;
     writePin(&poncho->BUZZER, estado);
 }
+
+void PonchoPuntoMode(Poncho * poncho,uint8_t i, bool estado){
+    if (!poncho) return;
+    setPuntoDigito(poncho->display , i,estado);
+
+}
+
 
 
 bool isHighF(Poncho_p poncho, uint8_t funcion){
