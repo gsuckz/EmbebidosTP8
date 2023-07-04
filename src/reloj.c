@@ -57,8 +57,11 @@ bool relojGuardarHora(Reloj * reloj,const uint8_t hora[6]){
     return horaValida;
 }
 bool relojHorario(Reloj * reloj, uint8_t hora[6]){
-    for (uint8_t i=0;i<6;i++) hora[i] = reloj->hora[i];
-    return horaEsValida(hora);
+    bool RelojConHoraValida = horaEsValida(reloj->hora);
+    if(RelojConHoraValida){
+        for (uint8_t i=0;i<6;i++) hora[i] = reloj->hora[i];
+    }
+    return RelojConHoraValida;
 }
 
 static void borraDigitosHasta(Reloj * const reloj,const enum Digitos posicion){

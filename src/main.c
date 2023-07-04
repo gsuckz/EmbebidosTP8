@@ -31,31 +31,31 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 /** \brief Simple sample of use LPC HAL gpio functions
  **
  ** \addtogroup samples Sample projects
  ** \brief Sample projects to use as a starting point
  ** @{ */
-
 /* === Headers files inclusions =============================================================== */
-
 #include "mybsp.h"
 #include "poncho.h"
 #include "reloj.h"
+#include "ajuste.h"
 #include <stdbool.h>
-
-
-#define CANTIDADTICKS 100
-
 /* === Macros definitions ====================================================================== */
-
+#define CANTIDADTICKS 100
 /* === Private data type declarations ========================================================== */
 typedef enum ESTADOS{
     E_RESET,
-    E_HORA,
-    E_MOD_HORA,
-    E_MOD_ALARMA
+    E_ESPERA_MOD_HORARIO_R,
+    E_ESPERA_MOD_HORARIO,
+    E_ESPERA_MOD_ALARMA_R,
+    E_ESPERA_MOD_ALARMA,
+    E_MOSTRAR_HORA,
+    E_MOD_HORARIO_MIN,
+    E_MOD_HORARIO_HOR,
+    E_MOD_ALARMA_MIN,
+    E_MOD_ALARMA_HOR
 } ESTADOS;
 
 typedef enum Eventos{
@@ -68,81 +68,194 @@ typedef enum Eventos{
     TIMEOUT
 } Eventos;
 /* === Private variable declarations =========================================================== */
-
 /* === Private function declarations =========================================================== */
-//static int hhmmToInt(uint8_t * numero){
-//    int resultado =0;
-//    resultado += numero[3];
-//    resultado += 10*numero[2];
-//    resultado += 100*numero[1];
-//    resultado += 1000*numero[0];
-//    return resultado;
-//}
 /* === Public variable definitions ============================================================= */
-bool volatile Parpadeo = 0;
+int TimeOut;
 /* === Private variable definitions ============================================================ */
+static bool volatile Parpadeo = 0;
+static Poncho_p poncho;
+static Reloj *  reloj;
 
 /* === Private function implementation ========================================================= */
-
-/* === Public function implementation ========================================================= */
-void alar (bool a){
-    return;
-}
-
-int TimeOut;
-void setTimeOut(int segundos){
+static void setTimeOut(int segundos){
     TimeOut = segundos * CANTIDADTICKS;
 }
-
-Poncho_p poncho;
-Reloj *  reloj;
-
-
-void modificar(ESTADOS estado, uint8_t hhmm[6], bool inc){
-    if ((estado == E_MOD_ALARMA) || (estado == E_MOD_HORA) ) inc ? hhmm[3]++ : hhmm[3]-- ;
+static void ControladorAlarma(bool estado){
+    PonchoBuzzer(poncho,estado);
     return;
 }
-
-void parpadeoHHMM(Reloj * reloj, uint8_t * hhmm,bool parpadeo){
-
-    if (parpadeo) {
+static void parpadeoMM(uint8_t * hhmm){
+    if (Parpadeo) {
         hhmm[2] = -1;
         hhmm[3] = -1;
     }
 }
-
-int main(void) {
-    Poncho_p poncho;
-    poncho = PonchoInit();
-    SystemCoreClockUpdate();
-    SysTick_Config(SystemCoreClock / (CANTIDADTICKS));
-    reloj = relojCrear(CANTIDADTICKS, alar);
-    ESTADOS estado = E_HORA;
-    static uint8_t hhmm[6] = {0,0,0,1,0,0};
-    relojGuardarHora(reloj,hhmm);
-    while (1){ ///LAZO PRINCIPAL  
-        
-        if (estado == E_HORA) {
-            relojHorario(reloj,hhmm);
-        }
-        relojHorario(reloj,hhmm);
-        if(estado == E_MOD_ALARMA || estado == E_MOD_HORA) {
-            parpadeoHHMM(reloj,hhmm,Parpadeo); 
-        }   
-        PonchoWriteDisplay(poncho, hhmm);        
-        PonchoPuntoMode(poncho,2,Parpadeo);
-        PonchoDrawDisplay(poncho);
-        }
+static void parpadeoHH(uint8_t * hhmm){
+    if (Parpadeo) {
+        hhmm[0] = -1;
+        hhmm[1] = -1;
     }
-
-
+}
+static void parpadeoHHMM(uint8_t * hhmm){
+    parpadeoHH(hhmm);
+    parpadeoMM(hhmm);
+}
+static void mostrarEnPantalla(Reloj * reloj, ESTADOS estado,uint8_t temp[6]){  
+    uint8_t hhmm[4];
+    for (int i=0;i<=4;i++) hhmm[i] = temp[i];
+    switch (estado)
+    {
+        case E_MOD_ALARMA_MIN:
+        case E_MOD_HORARIO_MIN: //FALLTHRU
+            parpadeoMM(hhmm); 
+        break;
+        case E_MOD_ALARMA_HOR:
+            PonchoPuntoMode(poncho,0,Parpadeo);
+            PonchoPuntoMode(poncho,1,Parpadeo);
+            PonchoPuntoMode(poncho,2,Parpadeo);
+            PonchoPuntoMode(poncho,3,Parpadeo);
+        case E_MOD_HORARIO_HOR: //FALLTRHU
+            parpadeoHH(hhmm);   
+        break;
+        case E_RESET:
+            parpadeoHHMM(hhmm);
+        default:
+            PonchoPuntoMode(poncho,2,Parpadeo);
+        break;
+    }
+    if (getEstadoAlarma == ON) {
+        PonchoPuntoMode(poncho,0,1);
+    }else{
+         PonchoPuntoMode(poncho,0,0);
+    }
+    PonchoWriteDisplay(poncho, hhmm); 
+    PonchoDrawDisplay(poncho); 
+}
+/* === Public function implementation ========================================================= */
 void SysTick_Handler(void){
     if (relojTick(reloj)) {
         Parpadeo = !Parpadeo;
     }
     if(TimeOut>0) TimeOut--;
-
 }
+int main(void) {
+    SystemCoreClockUpdate();
+    SysTick_Config(SystemCoreClock / (CANTIDADTICKS));
+    poncho = PonchoInit();
+    reloj = relojCrear(CANTIDADTICKS, ControladorAlarma);
+    ESTADOS estado = E_RESET, volver = E_RESET;
+    uint8_t temp[6] = {0,0, 0,0 ,0,0};    
+    while (1){ ///LAZO PRINCIPAL 
+        mostrarEnPantalla(reloj,estado,temp);   
+        switch (estado){
+            case E_RESET:                      
+            case E_MOSTRAR_HORA: //FALLTHRU
+                relojHorario(reloj,temp);
+                if(isHighF(poncho,2)) {
+                    volver = estado;
+                    setTimeOut(3);
+                    estado = E_ESPERA_MOD_HORARIO;
+                }
+                if(isHighF(poncho,3)) {
+                    volver = estado;
+                    setTimeOut(3);
+                    estado = E_ESPERA_MOD_ALARMA;
+                }
+                if (getEstadoAlarma == ON){
+                    if(PonchoBotonAceptar(poncho)) relojSnooze(reloj,5);
+                    if(PonchoBotonCancelar(poncho)) setAlarmaEstado(reloj,READY);
+                }else{
+                    if(PonchoBotonAceptar(poncho)) setAlarmaEstado(reloj,READY);
+                    if(PonchoBotonCancelar(poncho)) setAlarmaEstado(reloj,OFF);
+                }
+            break;case E_ESPERA_MOD_ALARMA:
+                if(!isHighF(poncho,3)) estado = volver;
+                if(!TimeOut) {
+                    setTimeOut(30);
+                    getAlarmaHora(reloj,temp);
+                    estado = E_MOD_ALARMA_MIN;
+                }
+            break;case E_ESPERA_MOD_HORARIO:
+                if(!isHighF(poncho,3)) estado = volver;
+                if(!TimeOut) {
+                    setTimeOut(30);
+                    relojHorario(reloj,temp);
+                    estado = E_MOD_HORARIO_MIN;
+                }
+            break;case E_MOD_ALARMA_MIN:
+                if(PonchoBotonFuncion(poncho,3)){
+                    setTimeOut(30);
+                    incrementarMinutos(temp);
+                }
+                if(PonchoBotonFuncion(poncho,4)){
+                    setTimeOut(30);
+                    decrementarMinutos(temp);
+                }
+                if(PonchoBotonCancelar || !TimeOut){
+                    estado = volver;
+                }
+                if(PonchoBotonAceptar(poncho)){
+                    setTimeOut(30);
+                    estado = E_MOD_ALARMA_HOR;
+                }
+            break;case E_MOD_ALARMA_HOR:
+                if(PonchoBotonFuncion(poncho,3)){
+                    setTimeOut(30);
+                    incrementarHoras(temp);
+                }
+                if(PonchoBotonFuncion(poncho,4)){
+                    setTimeOut(30);
+                    decrementarHoras(temp);
+                }
+                if(PonchoBotonCancelar || !TimeOut){
+                    estado = volver;
+                }   
+                if(PonchoBotonAceptar(poncho)){
+                    setTimeOut(30);
+                    setAlarmaHora(reloj,temp);
+                    setAlarmaEstado(reloj,READY);
+                    estado = E_MOSTRAR_HORA;
+                }                    
+            break;case E_MOD_HORARIO_MIN:
+                if(PonchoBotonFuncion(poncho,3)){
+                    setTimeOut(30);
+                    incrementarMinutos(temp);
+                }
+                if(PonchoBotonFuncion(poncho,4)){
+                    setTimeOut(30);
+                    decrementarMinutos(temp);
+                }
+                if(PonchoBotonCancelar || !TimeOut){
+                    estado = volver;
+                }
+                if(PonchoBotonAceptar(poncho)){
+                    setTimeOut(30);
+                    estado = E_MOD_HORARIO_HOR;
+                }           
+            break;case E_MOD_HORARIO_HOR:
+                if(PonchoBotonFuncion(poncho,3)){
+                    setTimeOut(30);
+                    incrementarHoras(temp);
+                }
+                if(PonchoBotonFuncion(poncho,4)){
+                    setTimeOut(30);
+                    decrementarHoras(temp);
+                }
+                if(PonchoBotonCancelar || !TimeOut){
+                    estado = volver;
+                }   
+                if(PonchoBotonAceptar(poncho)){
+                    relojGuardarHora(reloj,temp);
+                    estado = E_MOSTRAR_HORA;
+                }              
+            break;default:
+            break;
+        }    
+    }
+}
+
+
+
 /* === End of documentation ==================================================================== */
 
 /** @} End of module definition for doxygen */

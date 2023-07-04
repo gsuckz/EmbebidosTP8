@@ -64,7 +64,7 @@ bool relojGuardarHora(Reloj * reloj,const uint8_t hora[6]);
  * @param hora Luego del llamado contiene la hora actual del reloj en formato BCD sin compactar
  * {<decena de hora>,<unidad de hora>,<d. de minuto>,<u. de minuto>,<d. de segundo>,<u. de segundo>}
  * @return true Hora contiene la hora del reloj
- * @return false No fue asignada una hora correcta
+ * @return false No fue asignada una hora correcta, sin efecto sobre (hora)
  */
 bool relojHorario(Reloj * reloj, uint8_t hora[6]);
 /**
