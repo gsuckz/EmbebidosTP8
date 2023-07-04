@@ -90,8 +90,8 @@ void alar (bool a){
 }
 
 int TimeOut;
-void setTimeOut(int time){
-    TimeOut = time / CANTIDADTICKS;
+void setTimeOut(int segundos){
+    TimeOut = segundos * CANTIDADTICKS;
 }
 
 Poncho_p poncho;
