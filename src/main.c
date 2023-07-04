@@ -43,7 +43,7 @@
 #include "ajuste.h"
 #include <stdbool.h>
 /* === Macros definitions ====================================================================== */
-#define CANTIDADTICKS 100
+#define CANTIDAD_TICKS_POR_SEGUNDO 100
 /* === Private data type declarations ========================================================== */
 typedef enum ESTADOS{
     E_RESET,
@@ -57,7 +57,6 @@ typedef enum ESTADOS{
     E_MOD_ALARMA_MIN,
     E_MOD_ALARMA_HOR
 } ESTADOS;
-
 typedef enum Eventos{
     F1,
     F2,
@@ -75,10 +74,9 @@ int TimeOut;
 static bool volatile Parpadeo = 0;
 static Poncho_p poncho;
 static Reloj *  reloj;
-
 /* === Private function implementation ========================================================= */
 static void setTimeOut(int segundos){
-    TimeOut = segundos * CANTIDADTICKS;
+    TimeOut = segundos * CANTIDAD_TICKS_POR_SEGUNDO;
 }
 static void ControladorAlarma(bool estado){
     PonchoBuzzer(poncho,estado);
@@ -131,7 +129,6 @@ static void mostrarEnPantalla(Reloj * reloj, ESTADOS estado,uint8_t temp[6]){
     PonchoWriteDisplay(poncho, hhmm); 
     PonchoDrawDisplay(poncho); 
 }
-
 static checkBotones(ESTADOS * estado, ESTADOS * volver, uint8_t temp[6]){
             
             if (getEstadoAlarma == ON){
@@ -162,7 +159,7 @@ static checkBotones(ESTADOS * estado, ESTADOS * volver, uint8_t temp[6]){
                     *estado = E_MOD_ALARMA_MIN;
                 }
             break;case E_ESPERA_MOD_HORARIO:
-                if(!isHighF(poncho,3)) *estado = *volver;
+                if(!isHighF(poncho,2)) *estado = *volver;
                 if(!TimeOut) {
                     setTimeOut(30);
                     relojHorario(reloj,temp);
@@ -247,19 +244,15 @@ void SysTick_Handler(void){
 }
 int main(void) {
     SystemCoreClockUpdate();
-    SysTick_Config(SystemCoreClock / (CANTIDADTICKS));
+    SysTick_Config(SystemCoreClock / (CANTIDAD_TICKS_POR_SEGUNDO));
     poncho = PonchoInit();
-    reloj = relojCrear(CANTIDADTICKS, ControladorAlarma);
+    reloj = relojCrear(CANTIDAD_TICKS_POR_SEGUNDO, ControladorAlarma);
     ESTADOS estado = E_RESET, volver = E_RESET;
     uint8_t temp[6] = {0,0, 0,0 ,0,0};    
     while (1){ ///LAZO PRINCIPAL 
-        mostrarEnPantalla(reloj,estado,temp);  
         checkBotones(&estado,&volver,temp);         
+        mostrarEnPantalla(reloj,estado,temp);  
     }
 }
-
-
-
 /* === End of documentation ==================================================================== */
-
 /** @} End of module definition for doxygen */
