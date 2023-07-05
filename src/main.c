@@ -40,218 +40,36 @@
 #include "mybsp.h"
 #include "poncho.h"
 #include "reloj.h"
-#include "ajuste.h"
+#include "control.h"
 #include <stdbool.h>
 /* === Macros definitions ====================================================================== */
-#define CANTIDAD_TICKS_POR_SEGUNDO 100
 /* === Private data type declarations ========================================================== */
-typedef enum ESTADOS{
-    E_RESET,
-    E_ESPERA_MOD_HORARIO_R,
-    E_ESPERA_MOD_HORARIO,
-    E_ESPERA_MOD_ALARMA_R,
-    E_ESPERA_MOD_ALARMA,
-    E_MOSTRAR_HORA,
-    E_MOD_HORARIO_MIN,
-    E_MOD_HORARIO_HOR,
-    E_MOD_ALARMA_MIN,
-    E_MOD_ALARMA_HOR
-} ESTADOS;
-typedef enum Eventos{
-    F1,
-    F2,
-    F3,
-    F4,
-    ACEPTAR,
-    CANCELAR,
-    TIMEOUT
-} Eventos;
 /* === Private variable declarations =========================================================== */
 /* === Private function declarations =========================================================== */
 /* === Public variable definitions ============================================================= */
-int TimeOut;
+
 /* === Private variable definitions ============================================================ */
-static bool volatile Parpadeo = 0;
+
 static Poncho_p poncho;
 static Reloj *  reloj;
 /* === Private function implementation ========================================================= */
-static void setTimeOut(int segundos){
-    TimeOut = segundos * CANTIDAD_TICKS_POR_SEGUNDO;
-}
 static void ControladorAlarma(bool estado){
     PonchoBuzzer(poncho,estado);
     return;
 }
-static void parpadeoMM(uint8_t * hhmm){
-    if (Parpadeo) {
-        hhmm[2] = -1;
-        hhmm[3] = -1;
-    }
-}
-static void parpadeoHH(uint8_t * hhmm){
-    if (Parpadeo) {
-        hhmm[0] = -1;
-        hhmm[1] = -1;
-    }
-}
-static void parpadeoHHMM(uint8_t * hhmm){
-    parpadeoHH(hhmm);
-    parpadeoMM(hhmm);
-}
-static void mostrarEnPantalla(Reloj * reloj, ESTADOS estado,uint8_t temp[6]){  
-    uint8_t hhmm[4];
-    for (int i=0;i<=4;i++) hhmm[i] = temp[i];
-    switch (estado)
-    {
-        case E_MOD_ALARMA_MIN:
-        case E_MOD_HORARIO_MIN: //FALLTHRU
-            parpadeoMM(hhmm); 
-        break;
-        case E_MOD_ALARMA_HOR:
-            PonchoPuntoMode(poncho,0,Parpadeo);
-            PonchoPuntoMode(poncho,1,Parpadeo);
-            PonchoPuntoMode(poncho,2,Parpadeo);
-            PonchoPuntoMode(poncho,3,Parpadeo);
-        case E_MOD_HORARIO_HOR: //FALLTRHU
-            parpadeoHH(hhmm);   
-        break;
-        case E_RESET:
-            parpadeoHHMM(hhmm);
-        default:
-            PonchoPuntoMode(poncho,2,Parpadeo);
-        break;
-    }
-    if (getEstadoAlarma == ON) {
-        PonchoPuntoMode(poncho,0,1);
-    }else{
-         PonchoPuntoMode(poncho,0,0);
-    }
-    PonchoWriteDisplay(poncho, hhmm); 
-    PonchoDrawDisplay(poncho); 
-}
-static checkBotones(ESTADOS * estado, ESTADOS * volver, uint8_t temp[6]){
-            
-            if (getEstadoAlarma == ON){
-                if(PonchoBotonAceptar(poncho)) relojSnooze(reloj,5);
-                if(PonchoBotonCancelar(poncho)) setAlarmaEstado(reloj,READY);
-            }
-            switch (*estado){
-            case E_RESET:                      
-            case E_MOSTRAR_HORA: //FALLTHRU
-                relojHorario(reloj,temp);
-                if(isHighF(poncho,2)) {
-                    *volver = *estado;
-                    setTimeOut(3);
-                    *estado = E_ESPERA_MOD_HORARIO;
-                }
-                if(isHighF(poncho,3)) {
-                    *volver = *estado;
-                    setTimeOut(3);
-                    *estado = E_ESPERA_MOD_ALARMA;
-                }
-                if(PonchoBotonAceptar(poncho)) setAlarmaEstado(reloj,READY);
-                if(PonchoBotonCancelar(poncho)) setAlarmaEstado(reloj,OFF);
-            break;case E_ESPERA_MOD_ALARMA:
-                if(!isHighF(poncho,3)) *estado = *volver;
-                if(!TimeOut) {
-                    setTimeOut(30);
-                    getAlarmaHora(reloj,temp);
-                    *estado = E_MOD_ALARMA_MIN;
-                }
-            break;case E_ESPERA_MOD_HORARIO:
-                if(!isHighF(poncho,2)) *estado = *volver;
-                if(!TimeOut) {
-                    setTimeOut(30);
-                    relojHorario(reloj,temp);
-                    *estado = E_MOD_HORARIO_MIN;
-                }
-            break;case E_MOD_ALARMA_MIN:
-                if(PonchoBotonFuncion(poncho,3)){
-                    setTimeOut(30);
-                    incrementarMinutos(temp);
-                }
-                if(PonchoBotonFuncion(poncho,4)){
-                    setTimeOut(30);
-                    decrementarMinutos(temp);
-                }
-                if(PonchoBotonCancelar || !TimeOut){
-                    *estado = *volver;
-                }
-                if(PonchoBotonAceptar(poncho)){
-                    setTimeOut(30);
-                    *estado = E_MOD_ALARMA_HOR;
-                }
-            break;case E_MOD_ALARMA_HOR:
-                if(PonchoBotonFuncion(poncho,3)){
-                    setTimeOut(30);
-                    incrementarHoras(temp);
-                }
-                if(PonchoBotonFuncion(poncho,4)){
-                    setTimeOut(30);
-                    decrementarHoras(temp);
-                }
-                if(PonchoBotonCancelar || !TimeOut){
-                    *estado = *volver;
-                }   
-                if(PonchoBotonAceptar(poncho)){
-                    setTimeOut(30);
-                    setAlarmaHora(reloj,temp);
-                    setAlarmaEstado(reloj,READY);
-                    *estado = E_MOSTRAR_HORA;
-                }                    
-            break;case E_MOD_HORARIO_MIN:
-                if(PonchoBotonFuncion(poncho,3)){
-                    setTimeOut(30);
-                    incrementarMinutos(temp);
-                }
-                if(PonchoBotonFuncion(poncho,4)){
-                    setTimeOut(30);
-                    decrementarMinutos(temp);
-                }
-                if(PonchoBotonCancelar || !TimeOut){
-                    *estado = *volver;
-                }
-                if(PonchoBotonAceptar(poncho)){
-                    setTimeOut(30);
-                    *estado = E_MOD_HORARIO_HOR;
-                }           
-            break;case E_MOD_HORARIO_HOR:
-                if(PonchoBotonFuncion(poncho,3)){
-                    setTimeOut(30);
-                    incrementarHoras(temp);
-                }
-                if(PonchoBotonFuncion(poncho,4)){
-                    setTimeOut(30);
-                    decrementarHoras(temp);
-                }
-                if(PonchoBotonCancelar || !TimeOut){
-                    *estado = *volver;
-                }   
-                if(PonchoBotonAceptar(poncho)){
-                    relojGuardarHora(reloj,temp);
-                    *estado = E_MOSTRAR_HORA;
-                }              
-            break;default:
-            break;
-        }    
-}
 /* === Public function implementation ========================================================= */
-void SysTick_Handler(void){
-    if (relojTick(reloj)) {
-        Parpadeo = !Parpadeo;
-    }
-    if(TimeOut>0) TimeOut--;
-}
+
 int main(void) {
     SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock / (CANTIDAD_TICKS_POR_SEGUNDO));
     poncho = PonchoInit();
     reloj = relojCrear(CANTIDAD_TICKS_POR_SEGUNDO, ControladorAlarma);
     ESTADOS estado = E_RESET, volver = E_RESET;
-    uint8_t temp[6] = {0,0, 0,0 ,0,0};    
+    uint8_t temp[6] = {0,0, 0,0 ,0,0};
+    tickConfig(reloj);    
     while (1){ ///LAZO PRINCIPAL 
-        checkBotones(&estado,&volver,temp);         
-        mostrarEnPantalla(reloj,estado,temp);  
+        checkBotones(poncho,reloj,&estado,&volver,temp);         
+        mostrarEnPantalla(poncho,reloj,estado,temp);  
     }
 }
 /* === End of documentation ==================================================================== */
