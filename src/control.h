@@ -18,12 +18,17 @@ typedef enum ESTADOS{
     E_MOD_HORARIO_MIN,
     E_MOD_HORARIO_HOR,
     E_MOD_ALARMA_MIN,
-    E_MOD_ALARMA_HOR
+    E_MOD_ALARMA_HOR,
+    E_MOD_HORARIO_MIN_R,
+    E_MOD_HORARIO_HOR_R,
+    E_MOD_ALARMA_MIN_R,
+    E_MOD_ALARMA_HOR_R
 } ESTADOS;
 
 
 void     tickConfig(Reloj * reloj); 
-void checkBotones(Poncho_p poncho,Reloj * reloj, ESTADOS * estado, ESTADOS * volver, uint8_t temp[6]);
-
+void checkBotones(Poncho_p poncho,Reloj * reloj, ESTADOS * estado, uint8_t temp[6]);
 void mostrarEnPantalla(Poncho_p poncho, Reloj * reloj, ESTADOS estado,uint8_t temp[6]);
+void timeOutCheck(void);
+void segRefParpadeo(void);
 #endif

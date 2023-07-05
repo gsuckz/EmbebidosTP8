@@ -94,14 +94,14 @@ bool PonchoBotonCancelar(Poncho * poncho) {
 bool PonchoBotonAceptar(Poncho * poncho) {
     if (!poncho)
         return 0;
-    static bool estado;
+    static bool estado_anterior_PBA;
     bool estadon = readPin(&poncho->ACEPTAR);
 
-    if (estado && !estadon) {
-        estado = estadon;
+    if (estado_anterior_PBA && !estadon) {
+        estado_anterior_PBA = estadon;
         return 1;
     }
-    estado = estadon;
+    estado_anterior_PBA = estadon;
     return 0;
 }
 
@@ -141,5 +141,5 @@ void PonchoPuntoMode(Poncho * poncho,uint8_t i, bool estado){
 
 
 bool isHighF(Poncho_p poncho, uint8_t funcion){
-    return readPin(&poncho->F[funcion]);
+    return readPin(&poncho->F[funcion - 1]);
 }

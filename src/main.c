@@ -57,18 +57,25 @@ static void ControladorAlarma(bool estado){
     PonchoBuzzer(poncho,estado);
     return;
 }
+
 /* === Public function implementation ========================================================= */
+void SysTick_Handler(void){
+    if (relojTick(reloj)) {
+        segRefParpadeo();
+    }
+    timeOutCheck();
+}
 
 int main(void) {
     SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock / (CANTIDAD_TICKS_POR_SEGUNDO));
     poncho = PonchoInit();
     reloj = relojCrear(CANTIDAD_TICKS_POR_SEGUNDO, ControladorAlarma);
-    ESTADOS estado = E_RESET, volver = E_RESET;
+    ESTADOS estado = E_RESET;
     uint8_t temp[6] = {0,0, 0,0 ,0,0};
     tickConfig(reloj);    
     while (1){ ///LAZO PRINCIPAL 
-        checkBotones(poncho,reloj,&estado,&volver,temp);         
+        checkBotones(poncho,reloj,&estado,temp);         
         mostrarEnPantalla(poncho,reloj,estado,temp);  
     }
 }
