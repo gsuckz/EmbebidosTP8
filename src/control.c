@@ -41,7 +41,7 @@ void mostrarEnPantalla(Poncho_p poncho, Reloj * reloj, ESTADOS estado,uint8_t te
             for (int i=0; i<=3 ;i++) {
                 hhmm[i] = temp[i];
             }              
-        void (*parpadear)(uint8_t * hhmm) = (estado == E_MOD_HORARIO_HOR || E_MOD_HORARIO_MIN) ? parpadeoMM : parpadeoHH;
+        void (*parpadear)(uint8_t * hhmm) = ((estado == E_MOD_ALARMA_MIN) || (estado == E_MOD_HORARIO_MIN)) ? parpadeoMM : parpadeoHH;
         parpadear(hhmm);            
         break;case E_RESET:
         case E_ESPERA_MOD_ALARMA_R:   //FALLTHRU 
@@ -75,7 +75,7 @@ void mostrarEnPantalla(Poncho_p poncho, Reloj * reloj, ESTADOS estado,uint8_t te
 void checkBotones(Poncho_p poncho, Reloj * reloj, ESTADOS * estado, uint8_t temp[6]){
             
             if ((getEstadoAlarma(reloj)) == ON){
-                if(PonchoBotonAceptar(poncho)) relojSnooze(reloj,5);
+                if(PonchoBotonFuncion(poncho,1)) relojSnooze(reloj,5);
                 if(PonchoBotonCancelar(poncho)) setAlarmaEstado(reloj,READY);
             }
             switch (*estado){
@@ -100,7 +100,7 @@ void checkBotones(Poncho_p poncho, Reloj * reloj, ESTADOS * estado, uint8_t temp
                     setTimeOut(3);
                     *estado = E_ESPERA_MOD_ALARMA;
                 }
-                if(PonchoBotonAceptar(poncho)) setAlarmaEstado(reloj,READY);
+                if(PonchoBotonFuncion(poncho,1)) setAlarmaEstado(reloj,READY);
                 if(PonchoBotonCancelar(poncho)) setAlarmaEstado(reloj,OFF);
             break;case E_ESPERA_MOD_ALARMA:
                 if(!isHighF(poncho,3)) *estado = E_MOSTRAR_HORA;
@@ -128,7 +128,7 @@ void checkBotones(Poncho_p poncho, Reloj * reloj, ESTADOS * estado, uint8_t temp
                 if(PonchoBotonCancelar(poncho) || !TimeOut){
                     *estado = E_MOSTRAR_HORA;
                 }
-                if(PonchoBotonAceptar(poncho)){
+                if(PonchoBotonFuncion(poncho,1)){
                     setTimeOut(30);
                     *estado = E_MOD_ALARMA_HOR;
                 }
@@ -144,7 +144,7 @@ void checkBotones(Poncho_p poncho, Reloj * reloj, ESTADOS * estado, uint8_t temp
                 if(PonchoBotonCancelar(poncho) || !TimeOut){
                     *estado = E_MOSTRAR_HORA;
                 }   
-                if(PonchoBotonAceptar(poncho)){
+                if(PonchoBotonFuncion(poncho,1)){
                     setTimeOut(30);
                     setAlarmaHora(reloj,temp);
                     setAlarmaEstado(reloj,READY);
@@ -162,7 +162,7 @@ void checkBotones(Poncho_p poncho, Reloj * reloj, ESTADOS * estado, uint8_t temp
                 if(PonchoBotonCancelar(poncho) || !TimeOut){
                     *estado = E_MOSTRAR_HORA;
                 }
-                if(PonchoBotonAceptar(poncho)){
+                if(PonchoBotonFuncion(poncho,1)){
                     setTimeOut(30);
                     *estado = E_MOD_HORARIO_HOR;
                 }           
@@ -178,7 +178,7 @@ void checkBotones(Poncho_p poncho, Reloj * reloj, ESTADOS * estado, uint8_t temp
                 if(PonchoBotonCancelar(poncho) || !TimeOut){
                     *estado = E_MOSTRAR_HORA;
                 }   
-                if(PonchoBotonAceptar(poncho)){
+                if(PonchoBotonFuncion(poncho,1)){
                     relojGuardarHora(reloj,temp);
                     *estado = E_MOSTRAR_HORA;
                 }              
@@ -208,7 +208,7 @@ void checkBotones(Poncho_p poncho, Reloj * reloj, ESTADOS * estado, uint8_t temp
                 if(PonchoBotonCancelar(poncho) || !TimeOut){
                     *estado = E_RESET;
                 }
-                if(PonchoBotonAceptar(poncho)){
+                if(PonchoBotonFuncion(poncho,1)){
                     setTimeOut(30);
                     *estado = E_MOD_ALARMA_HOR_R;
                 }
@@ -224,7 +224,7 @@ void checkBotones(Poncho_p poncho, Reloj * reloj, ESTADOS * estado, uint8_t temp
                 if(PonchoBotonCancelar(poncho) || !TimeOut){
                     *estado = E_RESET;
                 }   
-                if(PonchoBotonAceptar(poncho)){
+                if(PonchoBotonFuncion(poncho,1)){
                     setTimeOut(30);
                     setAlarmaHora(reloj,temp);
                     setAlarmaEstado(reloj,READY);
@@ -242,7 +242,7 @@ void checkBotones(Poncho_p poncho, Reloj * reloj, ESTADOS * estado, uint8_t temp
                 if(PonchoBotonCancelar(poncho) || !TimeOut){
                     *estado = E_RESET;
                 }
-                if(PonchoBotonAceptar(poncho)){
+                if(PonchoBotonFuncion(poncho,1)){
                     setTimeOut(30);
                     *estado = E_MOD_HORARIO_HOR_R;
                 }           
@@ -258,7 +258,7 @@ void checkBotones(Poncho_p poncho, Reloj * reloj, ESTADOS * estado, uint8_t temp
                 if(PonchoBotonCancelar(poncho) || !TimeOut){
                     *estado = E_RESET;
                 }   
-                if(PonchoBotonAceptar(poncho)){
+                if(PonchoBotonFuncion(poncho,1)){
                     relojGuardarHora(reloj,temp);
                     *estado = E_MOSTRAR_HORA;
                 }              
