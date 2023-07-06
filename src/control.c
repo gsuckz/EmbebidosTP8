@@ -2,6 +2,7 @@
 #include "control.h"
 
 int TimeOut;
+static ESTADOS estado;
 static bool volatile Parpadeo = 0;
 static void setTimeOut(int segundos){
     TimeOut = segundos * CANTIDAD_TICKS_POR_SEGUNDO;
@@ -41,14 +42,15 @@ void mostrarEnPantalla(Poncho_p poncho, Reloj * reloj, ESTADOS estado,uint8_t te
             for (int i=0; i<=3 ;i++) {
                 hhmm[i] = temp[i];
             }              
-        void (*parpadear)(uint8_t * hhmm) = ((estado == E_MOD_ALARMA_MIN) || (estado == E_MOD_HORARIO_MIN)) ? parpadeoMM : parpadeoHH;
+        void (*parpadear)(uint8_t * hhmm) =((estado == E_MOD_ALARMA_MIN)    || 
+                                            (estado == E_MOD_ALARMA_MIN_R)  ||//¿Funcionaba sin estas lineas?
+                                            (estado == E_MOD_HORARIO_MIN_R) ||//¿Funcionaba sin estas lineas?
+                                            (estado == E_MOD_HORARIO_MIN)  
+        ) ? parpadeoMM : parpadeoHH; 
         parpadear(hhmm);            
         break;case E_RESET:
         case E_ESPERA_MOD_ALARMA_R:   //FALLTHRU 
-        case E_ESPERA_MOD_HORARIO_R: //FALLTHRU
-            for (int i=0; i<=3 ;i++) {
-                hhmm[i] = 0;
-            }            
+        case E_ESPERA_MOD_HORARIO_R: //FALLTHRU        
             parpadeoHHMM(hhmm);
             PonchoPuntoMode(poncho,0,0);
             PonchoPuntoMode(poncho,1,0);
@@ -70,13 +72,16 @@ void mostrarEnPantalla(Poncho_p poncho, Reloj * reloj, ESTADOS estado,uint8_t te
     }
     PonchoWriteDisplay(poncho, hhmm); 
     PonchoDrawDisplay(poncho); 
-
 }
-void checkBotones(Poncho_p poncho, Reloj * reloj, ESTADOS * estado, uint8_t temp[6]){
+void checkBotones(Poncho_p poncho, Reloj * reloj, uint8_t temp[6]){
             
-            if ((getEstadoAlarma(reloj)) == ON){
-                if(PonchoBotonFuncion(poncho,1)) relojSnooze(reloj,5);
-                if(PonchoBotonCancelar(poncho)) setAlarmaEstado(reloj,READY);
+            if ((getEstadoAlarma(reloj)) == ON){    //Los botones (ACEPTAR) y (CANCELAR) solo funcionan para la alarma
+                if(PonchoBotonFuncion(poncho,1)) { // cuando esta sonando. 
+                    relojSnooze(reloj,5);
+                    return;}
+                if(PonchoBotonCancelar(poncho)) {
+                    setAlarmaEstado(reloj,READY);
+                    return;}
             }
             switch (*estado){
             case E_RESET: 
