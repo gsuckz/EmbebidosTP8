@@ -60,7 +60,7 @@ void SysTick_Handler(void){
     if (relojTick(controlador)) {
         segRefParpadeo();
     }
-    timeOutCheck();
+    timeOutCheck(controlador);
 }
 
 int main(void) {
