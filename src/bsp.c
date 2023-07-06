@@ -31,19 +31,13 @@ static Poncho poncho = {.disp_digito = {[0] = {.puerto = DIGIT_1_PORT, .pin = DI
                                 [7] = {.puerto = SEGMENT_P_PORT, .pin = SEGMENT_P_PIN},
                                 
                             },
-
                         .ACEPTAR = {.puerto = KEY_ACCEPT_PORT, .pin = KEY_ACCEPT_PIN},
-
                         .CANCELAR = {.puerto = KEY_CANCEL_PORT, .pin = KEY_CANCEL_PIN},
-
                         .F = {[0] = {.puerto = KEY_F1_PORT, .pin = KEY_F1_PIN},
                               [1] = {.puerto = KEY_F2_PORT, .pin = KEY_F2_PIN},
                               [2] = {.puerto = KEY_F3_PORT, .pin = KEY_F3_PIN},
                               [3] = {.puerto = KEY_F4_PORT, .pin = KEY_F4_PIN}},
                         .BUZZER = {.puerto = BUZZER_PORT, .pin= BUZZER_PIN}
-
-
-
 };
 static void ctrl_segmento(uint8_t seg, bool estado);
 static void ctrl_digito(uint8_t dig, bool estado) {
@@ -52,7 +46,7 @@ static void ctrl_digito(uint8_t dig, bool estado) {
 Poncho * PonchoInit(void) {
     configPin(&poncho.CANCELAR, ENTRADA);
     configPin(&poncho.ACEPTAR, ENTRADA);
-    configPin(&poncho.BUZZER, ENTRADA);
+    configPin(&poncho.BUZZER, SALIDA);
     for (uint8_t i = 0; i <= 3; i++) {
         configPin(&poncho.F[i], ENTRADA);
     }

@@ -46,7 +46,8 @@
 
 /* === Private data type declarations ========================================================== */
 /* === Private variable declarations =========================================================== */
-static Control * controlador;
+Control * controlador;
+Poncho_p poncho;
 /* === Private function declarations =========================================================== */
 /* === Public variable definitions ============================================================= */
 /* === Private variable definitions ============================================================ */
@@ -54,20 +55,18 @@ static Control * controlador;
 
 /* === Public function implementation ========================================================= */
 void ControladorAlarma(bool estado){
-    PonchoBuzzer(ponchoDe(controlador),estado);
+    PonchoBuzzer(poncho,estado);
     return;
 }
 void SysTick_Handler(void){
-    if (relojTick(relojDe(controlador))) {
-        segRefParpadeo();
-    }
-    timeOutCheck(controlador);
+    sysTickCtrl(controlador);
 }
 
 int main(void) {
     SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock /(CANTIDAD_TICKS_POR_SEGUNDO));
-    controlador = crearControlador(CANTIDAD_TICKS_POR_SEGUNDO, ControladorAlarma);
+    poncho = PonchoInit();
+    controlador = crearControlador(CANTIDAD_TICKS_POR_SEGUNDO, ControladorAlarma ,poncho);
     uint8_t temp[6] = {0,0, 0,0 ,0,0};   
     while (1){ ///LAZO PRINCIPAL 
         checkBotones(controlador);         

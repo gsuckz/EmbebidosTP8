@@ -1,43 +1,66 @@
 #include <stdbool.h>
 #include "control.h"
 
-#define PRESCALER 100
+#define PRESCALER 1 //Se usa para accelerar ael reloj para las pruebas
 typedef struct Control{
     Poncho_p poncho;
     Reloj * reloj;
     ESTADOS estado;
     int TimeOut;
     uint8_t temp [6];
+    bool parpadeo;
 }Control;
 
 
 
-static bool volatile Parpadeo = 0;
+/**
+ * @brief Configura un tiempo de TimeOut en segundos
+ * 
+ * @param controlador 
+ * @param segundos 
+ */
 static void setTimeOut(Control * controlador, int segundos){
     controlador->TimeOut = segundos * CANTIDAD_TICKS_POR_SEGUNDO;
 }
-static void parpadeoMM(uint8_t * hhmm){
-    if (Parpadeo) {
+/**
+ * @brief Borra (escribiendo un caracter desconocido) en los minutos
+ * 
+ * @param hhmm 
+ */
+static void parpadeoMM(uint8_t * hhmm,Control * controlador){
+    if (controlador->parpadeo) {
         hhmm[2] = -1;
         hhmm[3] = -1;
     }
 }
-static void parpadeoHH(uint8_t * hhmm){
-    if (Parpadeo) {
+/**
+ * @brief Borra (escribiendo un caracter desconocido) en las horas
+ * 
+ * @param hhmm 
+ */
+static void parpadeoHH(uint8_t * hhmm,Control * controlador){
+    if (controlador->parpadeo) {
         hhmm[0] = -1;
         hhmm[1] = -1;
     }
 }
-static void parpadeoHHMM(uint8_t * hhmm){
-    parpadeoHH(hhmm);
-    parpadeoMM(hhmm);
+/**
+ * @brief /**
+ * @brief Borra (escribiendo un caracter desconocido) en el display
+ * 
+ * @param hhmm 
+ */
+static void parpadeoHHMM(uint8_t * hhmm,Control * controlador){
+    parpadeoHH(hhmm,controlador);
+    parpadeoMM(hhmm,controlador);
 }
-Control * crearControlador(int ticks_seg, void (*ControladorAlarma)(bool)){
+Control * crearControlador(int ticks_seg, void (*ControladorAlarma)(bool), Poncho_p poncho){
     Control * controlador = malloc(sizeof(Control));
-    controlador->poncho = PonchoInit();
+    controlador->poncho = poncho;
     controlador->reloj = relojCrear(ticks_seg/PRESCALER, ControladorAlarma);
     controlador->estado = E_RESET;
     controlador->TimeOut =0;
+    controlador->parpadeo =0;
     for(int i=0;i<6;i++) controlador->temp[i] = 0;
     return controlador;
     }
@@ -63,19 +86,19 @@ void mostrarEnPantalla(Control * controlador){
             for (int i=0; i<=3 ;i++) {
                 hhmm[i] = controlador->temp[i];
             }              
-        void (*parpadear)(uint8_t * hhmm) =((controlador->estado == E_MOD_ALARMA_MIN)    || 
-                                            (controlador->estado == E_MOD_ALARMA_MIN_R)  ||//¿Funcionaba sin estas lineas?
-                                            (controlador->estado == E_MOD_HORARIO_MIN_R) ||//¿Funcionaba sin estas lineas?
-                                            (controlador->estado == E_MOD_HORARIO_MIN)  
+        void (*parpadear)(uint8_t * hhmm,Control * controlador) =((controlador->estado == E_MOD_ALARMA_MIN)    || 
+                                                                  (controlador->estado == E_MOD_ALARMA_MIN_R)  ||
+                                                                  (controlador->estado == E_MOD_HORARIO_MIN_R) ||
+                                                                  (controlador->estado == E_MOD_HORARIO_MIN)  
         ) ? parpadeoMM : parpadeoHH; 
-        parpadear(hhmm);            
+        parpadear(hhmm,controlador);            
         break;case E_RESET:
         case E_ESPERA_MOD_ALARMA_R:   //FALLTHRU 
         case E_ESPERA_MOD_HORARIO_R: //FALLTHRU        
-            parpadeoHHMM(hhmm);
+            parpadeoHHMM(hhmm,controlador);
             PonchoPuntoMode(controlador->poncho,0,0);
             PonchoPuntoMode(controlador->poncho,1,0);
-            PonchoPuntoMode(controlador->poncho,2,!Parpadeo);                
+            PonchoPuntoMode(controlador->poncho,2,!controlador->parpadeo);                
             PonchoPuntoMode(controlador->poncho,3,0);            
         break;case E_MOSTRAR_HORA:
         case E_ESPERA_MOD_ALARMA:   //FALLTHRU
@@ -83,7 +106,7 @@ void mostrarEnPantalla(Control * controlador){
             relojHorario(controlador->reloj,hhmm);
             PonchoPuntoMode(controlador->poncho,0,0);
             PonchoPuntoMode(controlador->poncho,1,0);
-            PonchoPuntoMode(controlador->poncho,2,!Parpadeo);                
+            PonchoPuntoMode(controlador->poncho,2,!controlador->parpadeo);                
             PonchoPuntoMode(controlador->poncho,3,0);            
         break;default:
             for (int i=0; i<=3 ;i++) {
@@ -95,16 +118,13 @@ void mostrarEnPantalla(Control * controlador){
     }
     if ((getEstadoAlarma(controlador->reloj)) == READY) {
         PonchoPuntoMode(controlador->poncho,0,1);
-    }else if(getEstadoAlarma(controlador->reloj) == ON){
-        PonchoPuntoMode((controlador->reloj),2,1); 
     }
     PonchoWriteDisplay(controlador->poncho, hhmm); 
     PonchoDrawDisplay(controlador->poncho); 
 }
-void checkBotones(Control * controlador){
-            
-            if ((getEstadoAlarma(controlador->reloj)) == ON){    //Los botones (ACEPTAR) y (CANCELAR) solo funcionan para la alarma
-                if(PonchoBotonFuncion(controlador->poncho,1)) { // cuando esta sonando. 
+void checkBotones(Control * controlador){            
+            if ((getEstadoAlarma(controlador->reloj)) == ON){    //Los botones (ACEPTAR) y (CANCELAR) solo funcionan para 
+                if(PonchoBotonFuncion(controlador->poncho,1)) { // posoponer o apagar la alarma, cuando esta sonando. 
                     relojSnooze(controlador->reloj,5);
                     return;}
                 if(PonchoBotonCancelar(controlador->poncho)) {
@@ -300,18 +320,21 @@ void checkBotones(Control * controlador){
         }    
 }
 
-void timeOutCheck(Control * controlador){
+static void timeOutCheck(Control * controlador){
     if(controlador->TimeOut>0) controlador->TimeOut--;
 }
-
-void segRefParpadeo(void){
-    Parpadeo = !Parpadeo;
+static void segRefParpadeo(Control * ctrl){
+    ctrl->parpadeo = !ctrl->parpadeo;
 }
-
+void sysTickCtrl(Control * ctrl){
+    if (relojTick(relojDe(ctrl))) {
+        segRefParpadeo(ctrl);
+    }
+    timeOutCheck(ctrl);
+    }
 Poncho_p ponchoDe(Control * controlador){
     return controlador->poncho;
 }
-
 Reloj * relojDe(Control * controlador){
     return controlador->reloj;
 }

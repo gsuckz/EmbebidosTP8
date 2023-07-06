@@ -25,12 +25,32 @@ typedef enum ESTADOS{
     E_MOD_ALARMA_HOR_R
 } ESTADOS;
 typedef struct Control Control;
-
+/**
+ * @brief Verifica el estado de los botones asociados al controlador y
+ * realiza las funciones correspondientes
+ * 
+ * @param controlador 
+ */
 void checkBotones(Control * controlador);
+/**
+ * @brief Refresca el display del controlador mostrando la informacion adecuada
+ * 
+ * @param controlador 
+ */
 void mostrarEnPantalla(Control * controlador);
-void timeOutCheck(Control * controlador);
-void segRefParpadeo(void);
-Poncho_p ponchoDe(Control * controlador);
-Control * crearControlador(int ticks_seg, void (*ControladorAlarma)(bool));
+/**
+ * @brief Funcion para actualizar los valores de tiempo del controlador
+ * 
+ * @param ctrl 
+ */
+void sysTickCtrl(Control * ctrl);
+Control * crearControlador(int ticks_seg, void (*ControladorAlarma)(bool), Poncho_p poncho);
+/**
+ * @brief Devuelve el putnero al reloj del controlador, se usa para podes usar la funcion
+ * relojTick() de la libreria reloj
+ * 
+ * @param controlador 
+ * @return Reloj* 
+ */
 Reloj * relojDe(Control * controlador);
 #endif
