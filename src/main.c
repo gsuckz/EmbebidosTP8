@@ -45,22 +45,19 @@
 /* === Macros definitions ====================================================================== */
 /* === Private data type declarations ========================================================== */
 /* === Private variable declarations =========================================================== */
+static Control * controlador;
 /* === Private function declarations =========================================================== */
 /* === Public variable definitions ============================================================= */
-
 /* === Private variable definitions ============================================================ */
-
-static Poncho_p poncho;
-static Reloj *  reloj;
 /* === Private function implementation ========================================================= */
 static void ControladorAlarma(bool estado){
-    PonchoBuzzer(poncho,estado);
+    PonchoBuzzer(ponchoDe(controlador),estado);
     return;
 }
 
 /* === Public function implementation ========================================================= */
 void SysTick_Handler(void){
-    if (relojTick(reloj)) {
+    if (relojTick(controlador)) {
         segRefParpadeo();
     }
     timeOutCheck();
@@ -69,14 +66,11 @@ void SysTick_Handler(void){
 int main(void) {
     SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock / (CANTIDAD_TICKS_POR_SEGUNDO));
-    poncho = PonchoInit();
-    reloj = relojCrear(CANTIDAD_TICKS_POR_SEGUNDO, ControladorAlarma);
-    ESTADOS estado = E_RESET;
-    uint8_t temp[6] = {0,0, 0,0 ,0,0};
-    tickConfig(reloj);    
+    controlador = crearControlador(CANTIDAD_TICKS_POR_SEGUNDO, ControladorAlarma);
+    uint8_t temp[6] = {0,0, 0,0 ,0,0};   
     while (1){ ///LAZO PRINCIPAL 
-        checkBotones(poncho,reloj,&estado,temp);         
-        mostrarEnPantalla(poncho,reloj,estado,temp);  
+        checkBotones(controlador);         
+        mostrarEnPantalla(controlador);  
     }
 }
 /* === End of documentation ==================================================================== */

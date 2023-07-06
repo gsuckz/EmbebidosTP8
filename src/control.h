@@ -24,11 +24,11 @@ typedef enum ESTADOS{
     E_MOD_ALARMA_MIN_R,
     E_MOD_ALARMA_HOR_R
 } ESTADOS;
+typedef struct Control Control;
 
-
-void     tickConfig(Reloj * reloj); 
-void checkBotones(Poncho_p poncho,Reloj * reloj, ESTADOS * estado, uint8_t temp[6]);
-void mostrarEnPantalla(Poncho_p poncho, Reloj * reloj, ESTADOS estado,uint8_t temp[6]);
-void timeOutCheck(void);
+void checkBotones(Control * controlador);
+void mostrarEnPantalla(Control * controlador);
+void timeOutCheck(Control * controlador);
 void segRefParpadeo(void);
+Poncho_p ponchoDe(Control * controlador);
 #endif
