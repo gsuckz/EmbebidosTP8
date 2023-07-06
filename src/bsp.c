@@ -39,7 +39,8 @@ static Poncho poncho = {.disp_digito = {[0] = {.puerto = DIGIT_1_PORT, .pin = DI
                         .F = {[0] = {.puerto = KEY_F1_PORT, .pin = KEY_F1_PIN},
                               [1] = {.puerto = KEY_F2_PORT, .pin = KEY_F2_PIN},
                               [2] = {.puerto = KEY_F3_PORT, .pin = KEY_F3_PIN},
-                              [3] = {.puerto = KEY_F4_PORT, .pin = KEY_F4_PIN}}
+                              [3] = {.puerto = KEY_F4_PORT, .pin = KEY_F4_PIN}},
+                        .BUZZER = {.puerto = BUZZER_PORT, .pin= BUZZER_PIN}
 
 
 

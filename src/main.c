@@ -43,6 +43,7 @@
 #include "control.h"
 #include <stdbool.h>
 /* === Macros definitions ====================================================================== */
+
 /* === Private data type declarations ========================================================== */
 /* === Private variable declarations =========================================================== */
 static Control * controlador;
@@ -50,14 +51,14 @@ static Control * controlador;
 /* === Public variable definitions ============================================================= */
 /* === Private variable definitions ============================================================ */
 /* === Private function implementation ========================================================= */
-static void ControladorAlarma(bool estado){
+
+/* === Public function implementation ========================================================= */
+void ControladorAlarma(bool estado){
     PonchoBuzzer(ponchoDe(controlador),estado);
     return;
 }
-
-/* === Public function implementation ========================================================= */
 void SysTick_Handler(void){
-    if (relojTick(controlador)) {
+    if (relojTick(relojDe(controlador))) {
         segRefParpadeo();
     }
     timeOutCheck(controlador);
@@ -65,7 +66,7 @@ void SysTick_Handler(void){
 
 int main(void) {
     SystemCoreClockUpdate();
-    SysTick_Config(SystemCoreClock / (CANTIDAD_TICKS_POR_SEGUNDO));
+    SysTick_Config(SystemCoreClock /(CANTIDAD_TICKS_POR_SEGUNDO));
     controlador = crearControlador(CANTIDAD_TICKS_POR_SEGUNDO, ControladorAlarma);
     uint8_t temp[6] = {0,0, 0,0 ,0,0};   
     while (1){ ///LAZO PRINCIPAL 

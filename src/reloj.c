@@ -192,7 +192,7 @@ void getAlarmaHora(Reloj * reloj, uint8_t Alarma[4]){
 
 
 bool setAlarmaHora(Reloj * reloj, uint8_t Alarma[4]){
-    if (reloj->hora[0] > 9) return 0;
+    //if (reloj->hora[0] > 9) return 0; El enunciado del TP8 no prohibe configurar la alarma sin configurar la hora
     for (int i=0; i<4; i++)  reloj->alarma[i] =Alarma[i];
         setAlarmaEstado(reloj,READY);
     return 1;

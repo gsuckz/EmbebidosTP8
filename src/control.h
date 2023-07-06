@@ -31,4 +31,6 @@ void mostrarEnPantalla(Control * controlador);
 void timeOutCheck(Control * controlador);
 void segRefParpadeo(void);
 Poncho_p ponchoDe(Control * controlador);
+Control * crearControlador(int ticks_seg, void (*ControladorAlarma)(bool));
+Reloj * relojDe(Control * controlador);
 #endif
