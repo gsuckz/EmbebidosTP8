@@ -66,8 +66,7 @@ int main(void) {
     SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock /(CANTIDAD_TICKS_POR_SEGUNDO));
     poncho = PonchoInit();
-    controlador = crearControlador(CANTIDAD_TICKS_POR_SEGUNDO, ControladorAlarma ,poncho);
-    uint8_t temp[6] = {0,0, 0,0 ,0,0};   
+    controlador = crearControlador(CANTIDAD_TICKS_POR_SEGUNDO, ControladorAlarma ,poncho); 
     while (1){ ///LAZO PRINCIPAL 
         checkBotones(controlador);         
         mostrarEnPantalla(controlador);  

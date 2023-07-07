@@ -62,7 +62,7 @@ void incrementarMinutos(uint8_t  temp[]){
 
 static int anteriorDeCero(uint8_t temp[],const enum Digitos posicion){
     int previo;
-    const int digito = temp[posicion];
+    //const int digito = temp[posicion];
     switch (posicion){
     case UNIDAD_MINUTO: //FALLTHRU
         previo = 9;

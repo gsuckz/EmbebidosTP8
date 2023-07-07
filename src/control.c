@@ -45,7 +45,7 @@ static void parpadeoHH(uint8_t * hhmm,Control * controlador){
     }
 }
 /**
- * @brief /**
+ * @brief 
  * @brief Borra (escribiendo un caracter desconocido) en el display
  * 
  * @param hhmm 
