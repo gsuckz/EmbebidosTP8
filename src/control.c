@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include "control.h"
 
-#define PRESCALER 60 //Se usa para accelerar ael reloj para las pruebas
+#define PRESCALER 1 //Se usa para accelerar ael reloj para las pruebas
 typedef struct Control{
     Poncho_p poncho;
     Reloj * reloj;
