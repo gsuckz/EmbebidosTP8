@@ -124,7 +124,7 @@ void mostrarEnPantalla(Control * controlador){
 }
 void checkBotones(Control * controlador){            
             if ((getEstadoAlarma(controlador->reloj)) == ON){    //Los botones (ACEPTAR) y (CANCELAR) solo funcionan para 
-                if(PonchoBotonFuncion(controlador->poncho,4)) { // posoponer o apagar la alarma, cuando esta sonando. 
+                if(PonchoBotonAceptar(controlador->poncho)) { // posoponer o apagar la alarma, cuando esta sonando. 
                     relojSnooze(controlador->reloj,5);
                     return;}
                 if(PonchoBotonCancelar(controlador->poncho)) {
@@ -136,182 +136,183 @@ void checkBotones(Control * controlador){
                 for (int i=0; i<=3 ;i++) {
                     controlador->temp[i] = 0;
                 }                                           
-                if(isHighF(controlador->poncho,2)) {
+                if(isHighF(controlador->poncho,1)) {
                     setTimeOut(controlador,3);
                     controlador->estado = E_ESPERA_MOD_HORARIO_R;
                 }
-                if(isHighF(controlador->poncho,3)) {
+                if(isHighF(controlador->poncho,2)) {
                     setTimeOut(controlador,3);
                     controlador->estado = E_ESPERA_MOD_ALARMA_R;
                 }
             break;case E_MOSTRAR_HORA: //FALLTHRU
-                if(isHighF(controlador->poncho,2)) {
+                if(isHighF(controlador->poncho,1)) {
                     setTimeOut(controlador,3);
                     controlador->estado = E_ESPERA_MOD_HORARIO;
                 }
-                if(isHighF(controlador->poncho,3)) {
+                if(isHighF(controlador->poncho,2)) {
                     setTimeOut(controlador,3);
                     controlador->estado = E_ESPERA_MOD_ALARMA;
                 }
-                if(PonchoBotonFuncion(controlador->poncho,1)) setAlarmaEstado(controlador->reloj,READY);
+                if((PonchoBotonAceptar(controlador->poncho)) && 
+                !(getEstadoAlarma(controlador->reloj) == SNOOZE)) setAlarmaEstado(controlador->reloj,READY);
                 if(PonchoBotonCancelar(controlador->poncho)) setAlarmaEstado(controlador->reloj,OFF);
             break;case E_ESPERA_MOD_ALARMA:
-                if(!isHighF(controlador->poncho,3)) controlador->estado = E_MOSTRAR_HORA;
+                if(!isHighF(controlador->poncho,2)) controlador->estado = E_MOSTRAR_HORA;
                 if(!controlador->TimeOut) {
                     setTimeOut(controlador,30);
                     getAlarmaHora(controlador->reloj,controlador->temp);
                     controlador->estado = E_MOD_ALARMA_MIN;
                 }
             break;case E_ESPERA_MOD_HORARIO:
-                if(!isHighF(controlador->poncho,2)) controlador->estado = E_MOSTRAR_HORA;
+                if(!isHighF(controlador->poncho,1)) controlador->estado = E_MOSTRAR_HORA;
                 if(!controlador->TimeOut) {
                     setTimeOut(controlador,30);
                     relojHorario(controlador->reloj,controlador->temp);
                     controlador->estado = E_MOD_HORARIO_MIN;
                 }
             break;case E_MOD_ALARMA_MIN:
-                if(PonchoBotonFuncion(controlador->poncho,3)){
+                if(PonchoBotonFuncion(controlador->poncho,4)){
                     setTimeOut(controlador,30);
                     incrementarMinutos(controlador->temp);
                 }
-                if(PonchoBotonFuncion(controlador->poncho,4)){
+                if(PonchoBotonFuncion(controlador->poncho,3)){
                     setTimeOut(controlador,30);
                     decrementarMinutos(controlador->temp);
                 }
                 if(PonchoBotonCancelar(controlador->poncho) || !controlador->TimeOut){
                     controlador->estado = E_MOSTRAR_HORA;
                 }
-                if(PonchoBotonFuncion(controlador->poncho,1)){
+                if(PonchoBotonAceptar(controlador->poncho)){
                     setTimeOut(controlador,30);
                     controlador->estado = E_MOD_ALARMA_HOR;
                 }
             break;case E_MOD_ALARMA_HOR:
-                if(PonchoBotonFuncion(controlador->poncho,3)){
+                if(PonchoBotonFuncion(controlador->poncho,4)){
                     setTimeOut(controlador,30);
                     incrementarHoras(controlador->temp);
                 }
-                if(PonchoBotonFuncion(controlador->poncho,4)){
+                if(PonchoBotonFuncion(controlador->poncho,3)){
                     setTimeOut(controlador,30);
                     decrementarHoras(controlador->temp);
                 }
                 if(PonchoBotonCancelar(controlador->poncho) || !controlador->TimeOut){
                     controlador->estado = E_MOSTRAR_HORA;
                 }   
-                if(PonchoBotonFuncion(controlador->poncho,1)){
+                if(PonchoBotonAceptar(controlador->poncho)){
                     setTimeOut(controlador,30);
                     setAlarmaHora(controlador->reloj,controlador->temp);
                     setAlarmaEstado(controlador->reloj,READY);
                     controlador->estado = E_MOSTRAR_HORA;
                 }                    
             break;case E_MOD_HORARIO_MIN:
-                if(PonchoBotonFuncion(controlador->poncho,3)){
+                if(PonchoBotonFuncion(controlador->poncho,4)){
                     setTimeOut(controlador,30);
                     incrementarMinutos(controlador->temp);
                 }
-                if(PonchoBotonFuncion(controlador->poncho,4)){
+                if(PonchoBotonFuncion(controlador->poncho,3)){
                     setTimeOut(controlador,30);
                     decrementarMinutos(controlador->temp);
                 }
                 if(PonchoBotonCancelar(controlador->poncho) || !controlador->TimeOut){
                     controlador->estado = E_MOSTRAR_HORA;
                 }
-                if(PonchoBotonFuncion(controlador->poncho,1)){
+                if(PonchoBotonAceptar(controlador->poncho)){
                     setTimeOut(controlador,30);
                     controlador->estado = E_MOD_HORARIO_HOR;
                 }           
             break;case E_MOD_HORARIO_HOR:
-                if(PonchoBotonFuncion(controlador->poncho,3)){
+                if(PonchoBotonFuncion(controlador->poncho,4)){
                     setTimeOut(controlador,30);
                     incrementarHoras(controlador->temp);
                 }
-                if(PonchoBotonFuncion(controlador->poncho,4)){
+                if(PonchoBotonFuncion(controlador->poncho,3)){
                     setTimeOut(controlador,30);
                     decrementarHoras(controlador->temp);
                 }
                 if(PonchoBotonCancelar(controlador->poncho) || !controlador->TimeOut){
                     controlador->estado = E_MOSTRAR_HORA;
                 }   
-                if(PonchoBotonFuncion(controlador->poncho,1)){
+                if(PonchoBotonAceptar(controlador->poncho)){
                     relojGuardarHora(controlador->reloj,controlador->temp);
                     controlador->estado = E_MOSTRAR_HORA;
                 }              
             break;case E_ESPERA_MOD_ALARMA_R:
-                if(!isHighF(controlador->poncho,3)) controlador->estado = E_RESET;
+                if(!isHighF(controlador->poncho,2)) controlador->estado = E_RESET;
                 if(!controlador->TimeOut) {
                     setTimeOut(controlador,30);
                     getAlarmaHora(controlador->reloj,controlador->temp);
                     controlador->estado = E_MOD_ALARMA_MIN_R;
                 }
             break;case E_ESPERA_MOD_HORARIO_R:
-                if(!isHighF(controlador->poncho,2)) controlador->estado = E_RESET;
+                if(!isHighF(controlador->poncho,1)) controlador->estado = E_RESET;
                 if(!controlador->TimeOut) {
                     setTimeOut(controlador,30);
                     relojHorario(controlador->reloj,controlador->temp);
                     controlador->estado = E_MOD_HORARIO_MIN_R;
                 }
             break;case E_MOD_ALARMA_MIN_R:
-                if(PonchoBotonFuncion(controlador->poncho,3)){
+                if(PonchoBotonFuncion(controlador->poncho,4)){
                     setTimeOut(controlador,30);
                     incrementarMinutos(controlador->temp);
                 }
-                if(PonchoBotonFuncion(controlador->poncho,4)){
+                if(PonchoBotonFuncion(controlador->poncho,3)){
                     setTimeOut(controlador,30);
                     decrementarMinutos(controlador->temp);
                 }
                 if(PonchoBotonCancelar(controlador->poncho) || !controlador->TimeOut){
                     controlador->estado = E_RESET;
                 }
-                if(PonchoBotonFuncion(controlador->poncho,1)){
+                if(PonchoBotonAceptar(controlador->poncho)){
                     setTimeOut(controlador,30);
                     controlador->estado = E_MOD_ALARMA_HOR_R;
                 }
             break;case E_MOD_ALARMA_HOR_R:
-                if(PonchoBotonFuncion(controlador->poncho,3)){
+                if(PonchoBotonFuncion(controlador->poncho,4)){
                     setTimeOut(controlador,30);
                     incrementarHoras(controlador->temp);
                 }
-                if(PonchoBotonFuncion(controlador->poncho,4)){
+                if(PonchoBotonFuncion(controlador->poncho,3)){
                     setTimeOut(controlador,30);
                     decrementarHoras(controlador->temp);
                 }
                 if(PonchoBotonCancelar(controlador->poncho) || !controlador->TimeOut){
                     controlador->estado = E_RESET;
                 }   
-                if(PonchoBotonFuncion(controlador->poncho,1)){
+                if(PonchoBotonAceptar(controlador->poncho)){
                     setTimeOut(controlador,30);
                     setAlarmaHora(controlador->reloj,controlador->temp);
                     setAlarmaEstado(controlador->reloj,READY);
                     controlador->estado = E_RESET;
                 }                    
             break;case E_MOD_HORARIO_MIN_R:
-                if(PonchoBotonFuncion(controlador->poncho,3)){
+                if(PonchoBotonFuncion(controlador->poncho,4)){
                     setTimeOut(controlador,30);
                     incrementarMinutos(controlador->temp);
                 }
-                if(PonchoBotonFuncion(controlador->poncho,4)){
+                if(PonchoBotonFuncion(controlador->poncho,3)){
                     setTimeOut(controlador,30);
                     decrementarMinutos(controlador->temp);
                 }
                 if(PonchoBotonCancelar(controlador->poncho) || !controlador->TimeOut){
                     controlador->estado = E_RESET;
                 }
-                if(PonchoBotonFuncion(controlador->poncho,1)){
+                if(PonchoBotonAceptar(controlador->poncho)){
                     setTimeOut(controlador,30);
                     controlador->estado = E_MOD_HORARIO_HOR_R;
                 }           
             break;case E_MOD_HORARIO_HOR_R:
-                if(PonchoBotonFuncion(controlador->poncho,3)){
+                if(PonchoBotonFuncion(controlador->poncho,4)){
                     setTimeOut(controlador,30);
                     incrementarHoras(controlador->temp);
                 }
-                if(PonchoBotonFuncion(controlador->poncho,4)){
+                if(PonchoBotonFuncion(controlador->poncho,3)){
                     setTimeOut(controlador,30);
                     decrementarHoras(controlador->temp);
                 }
                 if(PonchoBotonCancelar(controlador->poncho) || !controlador->TimeOut){
                     controlador->estado = E_RESET;
                 }   
-                if(PonchoBotonFuncion(controlador->poncho,1)){
+                if(PonchoBotonAceptar(controlador->poncho)){
                     while(!relojGuardarHora(controlador->reloj,controlador->temp)); //bloquea el programa si no puede guardar
                     controlador->estado = E_MOSTRAR_HORA;
                 }              
