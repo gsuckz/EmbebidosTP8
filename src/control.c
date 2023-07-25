@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include "control.h"
 
-#define PRESCALER 1 //Se usa para accelerar ael reloj para las pruebas
+#define PRESCALER 60 //Se usa para accelerar ael reloj para las pruebas
 typedef struct Control{
     Poncho_p poncho;
     Reloj * reloj;
@@ -124,7 +124,7 @@ void mostrarEnPantalla(Control * controlador){
 }
 void checkBotones(Control * controlador){            
             if ((getEstadoAlarma(controlador->reloj)) == ON){    //Los botones (ACEPTAR) y (CANCELAR) solo funcionan para 
-                if(PonchoBotonFuncion(controlador->poncho,1)) { // posoponer o apagar la alarma, cuando esta sonando. 
+                if(PonchoBotonFuncion(controlador->poncho,4)) { // posoponer o apagar la alarma, cuando esta sonando. 
                     relojSnooze(controlador->reloj,5);
                     return;}
                 if(PonchoBotonCancelar(controlador->poncho)) {

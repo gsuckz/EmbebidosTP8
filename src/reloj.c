@@ -205,5 +205,5 @@ void relojApagarAlarma(Reloj * reloj){
 
 void relojSnooze(Reloj * reloj, uint8_t minutos){
     reloj->snooze += minutos*60;
-    reloj->estadoAlarma = SNOOZE;
+    setAlarmaEstado (reloj,SNOOZE);
 }
