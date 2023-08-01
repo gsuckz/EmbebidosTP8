@@ -21,6 +21,7 @@ Reloj * relojCrear(int ticks, void (*ctrlAlarm)(bool)){
     reloj->ticksMAX = ticks;
     reloj->estadoAlarma = OFF;
     reloj->snooze = 0;
+    reloj->ticks=0;
     for (int i=0;i<4;i++) reloj->alarma[i]=0;
     return reloj;
 }
